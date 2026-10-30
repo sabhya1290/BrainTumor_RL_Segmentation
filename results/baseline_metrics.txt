@@ -1,24 +1,16 @@
 
-Project: RL-Driven Brain Tumor Segmentation
+## Best Checkpoint Evaluation
 
-Model: U-Net
-Dataset: BraTS2020
-Training slices: 45,725
-Validation slices: 5,735
-Test slices: 5,735
-Epochs: 10
-Batch size: 2
-Optimizer: Adam
-Learning rate: 0.001
+Training run: Second full-dataset run
+Best validation loss: 0.1910
+Best epoch: 9
 
 Full validation Dice scores:
-Channel 0: 0.5253
-Channel 1: 0.6605
-Channel 2: 0.7210
+Channel 0: 0.5341
+Channel 1: 0.7058
+Channel 2: 0.7495
 
-Macro average Dice: 0.6356
+Macro average Dice: 0.6631
 
-Best validation loss: 0.2010 (Epoch 8)
-Final validation loss: 0.2343 (Epoch 10)
-
-Checkpoint: models/full_baseline_unet.pth
+Checkpoint:
+models/best_full_baseline_unet.pth
