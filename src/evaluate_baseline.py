@@ -14,6 +14,7 @@ def main():
         "data/splits/validation.csv",
         data_root="data/raw",
     )
+
     loader = DataLoader(
         dataset,
         batch_size=4,
@@ -22,43 +23,47 @@ def main():
     )
 
     model = UNet(in_channels=4, out_channels=3).to(device)
+
     state = torch.load(
-        "models/full_baseline_unet.pth",
+        "models/best_full_baseline_unet.pth",
         map_location=device,
         weights_only=True,
     )
+
     model.load_state_dict(state)
     model.eval()
 
-    intersection = torch.zeros(3, device=device)
-    predicted_pixels = torch.zeros(3, device=device)
-    actual_pixels = torch.zeros(3, device=device)
+    count = 0
+
+    print("\nChecking first 5 batches with at least 100 tumor pixels...\n")
 
     with torch.no_grad():
         for batch in loader:
             images = batch["image"].to(device)
             masks = batch["mask"].to(device)
 
-            probabilities = torch.sigmoid(model(images))
-            predictions = probabilities >= 0.5
-            targets = masks >= 0.5
+            # Skip batches with fewer than 100 positive mask pixels.
+            if masks.sum().item() < 100:
+                continue
 
-            for channel in range(3):
-                intersection[channel] += (
-                    predictions[:, channel] & targets[:, channel]
-                ).sum()
-                predicted_pixels[channel] += predictions[:, channel].sum()
-                actual_pixels[channel] += targets[:, channel].sum()
+            outputs = model(images)
 
-    dice = (
-        2 * intersection
-        / (predicted_pixels + actual_pixels).clamp_min(1)
-    )
+            print(f"Batch {count + 1}")
+            print("Logit min:", outputs.min().item())
+            print("Logit max:", outputs.max().item())
+            print("Logit mean:", outputs.mean().item())
+            print("Target positive pixels:", int(masks.sum().item()))
+            print("-" * 40)
 
-    for channel in range(3):
-        print(f"Channel {channel} Dice: {dice[channel].item():.4f}")
+            count += 1
 
-    print("Evaluation complete.")
+            if count == 5:
+                break
+
+    if count == 0:
+        print("No qualifying batches found.")
+    else:
+        print("Diagnostic check complete.")
 
 
 if __name__ == "__main__":
